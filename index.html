@@ -1302,13 +1302,33 @@ body { font-size: 1.125rem; }
 @media (prefers-reduced-motion: reduce) { .sheet .score { opacity: 1; transform: none; } .sheet .pen { display: none; } }
 @media (max-width: 480px) { .sheet .mark { right: 12px; width: 48px; height: 48px; } .sheet .pen { width: 36px; height: 36px; } }
 
+/* Automatic marking */
+.mark-head { margin: 0 0 12px; padding: 12px 14px; border-left: 5px solid currentColor; font-size: 1rem; }
+.mark-head b { font-family: var(--display); font-size: 1.5rem; font-weight: 700; margin-right: 6px; }
+.mark-head span { color: var(--muted); }
+.mark-head.s-c { color: #2FC99A; background: rgba(47,201,154,.12); }
+.mark-head.s-p { color: #FFB21A; background: rgba(255,178,26,.14); }
+.mark-head.s-w { color: #FF6FA5; background: rgba(245,50,124,.1); }
+.slips { margin: 0 0 14px; font-size: .9375rem; color: var(--muted); overflow-wrap: anywhere; }
+.verdict { margin-left: 8px; padding: 1px 7px; border-radius: 3px; font-size: .75rem; font-weight: 700; color: #fff; }
+.verdict.ok { background: #0E8F68; }
+.verdict.part { background: #B87400; }
+.verdict.no { background: #C40F5B; }
+.checked-pts { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.checked-pts li { position: relative; padding-left: 26px; }
+.checked-pts li::before { position: absolute; left: 0; top: 0; width: auto; height: auto; background: none; border: 0; font-weight: 700; }
+.checked-pts li.hit::before { content: "\2713"; color: #2FC99A; }
+.checked-pts li.miss::before { content: "\2013"; color: #FF6FA5; }
+.checked-pts li.miss { color: var(--muted); }
+.change-mark { display: block; margin: 16px 0 8px; padding: 6px 0; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: .875rem; text-align: left; }
+.marked .marks[hidden], #t-time-opt[hidden] { display: none; }
+.marked .model .pts, .marked .model .qa { display: none; }
+
 /* Pictures are always visible: no effect may hide them */
 .view.rv-wipe { clip-path: none !important; transition: none !important; }
 .view img { animation: none !important; filter: none !important; opacity: 1 !important; }
 .view, .q-img { background: #0E0840; }
 </style>
-</head>
-<body>
 
 <header class="bar">
   <div class="wrap">
@@ -1332,7 +1352,7 @@ body { font-size: 1.125rem; }
         <div class="wrap">
       <div class="cover-copy">
         <h1>Practical Special Pathology</h1>
-        <p class="sub">PAT-313 revision: 50 cases from Sections 1 to 5 and 7, and mock papers you mark yourself.</p>
+        <p class="sub">PAT-313 revision: 50 cases from Sections 1 to 5 and 7, and mock papers that mark themselves.</p>
         <div class="starts">
           <button type="button" class="btn-main" id="h-start">Start a mock paper</button>
           <button type="button" class="btn-quiet" id="h-drill">Quick drill</button>
@@ -1373,17 +1393,18 @@ body { font-size: 1.125rem; }
   <div class="modes">
     <div class="mode" id="t-mock-form">
       <h3>Mock paper</h3>
-      <p>One question at a time on a single clock. Type your answer, compare it with the model answer and mark it. The clock stops while you mark.</p>
+      <p>One question at a time. Type your answer and submit it. It is marked straight away, and small spelling slips are not counted against you.</p>
       <fieldset class="opt"><legend>Questions</legend><div class="chips"><label class="chip"><input class="sr" type="radio" name="t-n" id="t-n-10" value="10"><span>10</span></label><label class="chip"><input class="sr" type="radio" name="t-n" id="t-n-20" value="20" checked><span>20</span></label><label class="chip"><input class="sr" type="radio" name="t-n" id="t-n-30" value="30"><span>30</span></label><label class="chip"><input class="sr" type="radio" name="t-n" id="t-n-50" value="50"><span>All 50</span></label></div></fieldset>
-      <fieldset class="opt"><legend>Time per question</legend><div class="chips"><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-1" value="1"><span>1 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-1.5" value="1.5" checked><span>1.5 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-2" value="2"><span>2 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-3" value="3"><span>3 min</span></label></div></fieldset>
+      <label class="check"><input type="checkbox" id="t-timed"> Use a timer</label>
+      <fieldset class="opt" id="t-time-opt" hidden><legend>Time per question</legend><div class="chips"><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-1" value="1"><span>1 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-1.5" value="1.5" checked><span>1.5 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-2" value="2"><span>2 min</span></label><label class="chip"><input class="sr" type="radio" name="t-min" id="t-min-3" value="3"><span>3 min</span></label></div></fieldset>
       <fieldset class="opt"><legend>Systems</legend><div class="chips"><label class="chip"><input class="sr" type="checkbox" name="t-sys" id="t-sys-digestive" value="digestive" checked><span>Digestive</span></label><label class="chip"><input class="sr" type="checkbox" name="t-sys" id="t-sys-respiratory" value="respiratory" checked><span>Respiratory</span></label><label class="chip"><input class="sr" type="checkbox" name="t-sys" id="t-sys-cardiovascular" value="cardiovascular" checked><span>Cardiovascular</span></label><label class="chip"><input class="sr" type="checkbox" name="t-sys" id="t-sys-mammary" value="mammary" checked><span>Mammary</span></label></div></fieldset>
       <label class="check"><input type="checkbox" id="t-weakfirst"> Include my weak cases first</label>
-      <p class="total" id="t-total">20 questions, 30 minutes</p>
+      <p class="total" id="t-total">20 questions, no timer</p>
       <div class="go"><button type="button" class="btn-main" id="t-start">Start the paper</button></div>
     </div>
     <div class="mode">
       <h3>Quick drill</h3>
-      <p>One image at a time with no clock. Answer in your head, check and mark. A case you mark Wrong comes back once.</p>
+      <p>One image at a time with no clock. Type what you can and submit it. A case marked Wrong comes back once.</p>
       <fieldset class="opt"><legend>Focus</legend><div class="chips"><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-smart" value="smart" checked><span>Weak first</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-slide" value="slide"><span>Slides</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-jar" value="jar"><span>Jars</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-act" value="act"><span>Activities</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-digestive" value="digestive"><span>Digestive</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-respiratory" value="respiratory"><span>Respiratory</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-cardiovascular" value="cardiovascular"><span>Cardiovascular</span></label><label class="chip"><input class="sr" type="radio" name="t-focus" id="t-focus-mammary" value="mammary"><span>Mammary</span></label></div></fieldset>
       <fieldset class="opt"><legend>Cases</legend><div class="chips"><label class="chip"><input class="sr" type="radio" name="t-dsize" id="t-dsize-10" value="10" checked><span>10</span></label><label class="chip"><input class="sr" type="radio" name="t-dsize" id="t-dsize-20" value="20"><span>20</span></label><label class="chip"><input class="sr" type="radio" name="t-dsize" id="t-dsize-all" value="all"><span>All</span></label></div></fieldset>
       <div class="go"><button type="button" class="btn-main" id="t-drill">Start the drill</button></div>
@@ -1391,7 +1412,7 @@ body { font-size: 1.125rem; }
   </div>
   <div class="records">
     <div><h4>Mock paper scores</h4><ul class="list" id="t-history"><li class="empty">Your mock paper scores will appear here.</li></ul></div>
-    <div><h4>Cases to fix</h4><ul class="list" id="t-weaklist"><li class="empty">Cases you mark Wrong or Partly will appear here.</li></ul><button type="button" class="btn-quiet" id="t-drillweak" hidden>Drill all weak cases</button></div>
+    <div><h4>Cases to fix</h4><ul class="list" id="t-weaklist"><li class="empty">Cases marked Wrong or Partly will appear here.</li></ul><button type="button" class="btn-quiet" id="t-drillweak" hidden>Drill all weak cases</button></div>
     <div><h4>Your progress</h4><p class="lede" id="t-status"></p></div>
   </div>
   <div class="try-one">
@@ -2171,6 +2192,242 @@ body { font-size: 1.125rem; }
 <script type="application/json" id="case-data">[{"id":"slide-1","sys":"digestive","type":"slide","name":"Ulcerative glossitis","organ":"Tongue","stain":"H&E","points":["Tongue mucosa shows focal loss of epithelial covering. The base of the ulcer lies in the underlying propria.","The subepithelial connective tissue is infiltrated with mononuclear inflammatory cells."],"src":"Section 1, p. 5-6","imgs":[{"src":"ulcerative-glossitis","w":915,"h":590}]},{"id":"slide-2","sys":"digestive","type":"slide","name":"Ulcerative rumenitis","organ":"Rumen mucosa","stain":"H&E","points":["Ruminal mucosa shows complete desquamation of the epithelial lining, with infiltration of the lamina propria with inflammatory cells."],"src":"Section 1, p. 8-9","imgs":[{"src":"ulcerative-rumenitis","w":912,"h":567}]},{"id":"slide-3","sys":"digestive","type":"slide","name":"Acute (catarrhal) enteritis","organ":"Intestine","stain":"H&E","points":["Catarrhal enteritis: increased number of goblet cells and sloughing of the epithelial lining, with excessive mucus.","Lamina propria shows congestion of blood capillaries and leukocytic infiltration."],"src":"Section 1, p. 12-13","imgs":[{"src":"acute-enteritis","w":936,"h":619}]},{"id":"slide-4","sys":"digestive","type":"slide","name":"Necrotic enteritis","organ":"Intestine","stain":"H&E","points":["Necrosis of intestinal villi and glands with congestion, edema and leukocytic infiltration in the lamina propria.","Fibrinous exudate forms meshes intermingled with necrotic epithelial cells and inflammatory leukocytes."],"src":"Section 1, p. 15-16","imgs":[{"src":"necrotic-enteritis","w":917,"h":595}]},{"id":"slide-5","sys":"digestive","type":"slide","name":"Granulomatous enteritis","organ":"Small intestine","stain":"H&E","points":["The intestinal submucosa shows a circumscribed chronic proliferative inflammatory lesion known as granulomas.","It consists of macrophages, epithelioid cells, Langhans giant cells, lymphocytes, plasma cells and fibroblasts.","Mucinous degeneration of intestinal epithelium and atrophy of intestinal crypts are seen."],"src":"Section 2, p. 3-4","imgs":[{"src":"granulomatous-enteritis-he","w":936,"h":623}]},{"id":"slide-6","sys":"digestive","type":"slide","name":"Granulomatous enteritis","organ":"Small intestine","stain":"GMS (Gomori methenamine silver)","points":["The hyphae of the fungal causative agent stain black against a green background."],"src":"Section 2, p. 5-6","imgs":[{"src":"granulomatous-enteritis-gms","w":936,"h":561}]},{"id":"slide-7","sys":"digestive","type":"slide","name":"Multilobular cirrhosis","organ":"Liver","stain":"H&E","points":["Massive replacement of the hepatic parenchyma by fibrous tissue and nodules of regenerating hepatocytes.","Hepatocytes within the nodules are degenerated, with absence of the central vein (pseudolobulation).","Hyperplasia of bile ducts and chronic inflammatory cell infiltration are also seen."],"src":"Section 2, p. 10-11","imgs":[{"src":"multilobular-cirrhosis","w":920,"h":623}]},{"id":"slide-8","sys":"digestive","type":"slide","name":"Biliary cirrhosis (fascioliasis)","organ":"Liver","stain":"H&E","points":["Adult liver flukes in the bile duct, with proliferation of portal fibrous connective tissue.","Hyperplasia of bile ducts and formation of newly formed bile ductules.","Chronic inflammatory cell infiltration in portal areas."],"src":"Section 2, p. 12-13","imgs":[{"src":"biliary-cirrhosis","w":920,"h":623}]},{"id":"slide-9","sys":"digestive","type":"slide","name":"Glissonian cirrhosis","organ":"Liver","stain":"H&E","points":["Fibrous connective tissue proliferation under the hepatic capsule, with chronic inflammatory cell infiltration.","Hepatocytes at these sites suffer from pressure atrophy.","This is not true cirrhosis: it occurs in the capsule, away from the main liver structure."],"src":"Section 2, p. 14-16","imgs":[{"src":"glissonian-cirrhosis","w":948,"h":598}]},{"id":"slide-10","sys":"digestive","type":"slide","name":"Hepatic telangiectasis","organ":"Liver","stain":"H&E","points":["Hepatic sinusoids are severely dilated and engorged with blood. In some areas they appear as large spaces filled with blood.","Disorganized hepatic cords and atrophy of hepatocytes are seen."],"src":"Section 2, p. 17-19","imgs":[{"src":"hepatic-telangiectasis","w":934,"h":630}]},{"id":"jar-1","sys":"digestive","type":"jar","name":"Ulcerative glossitis","organ":"Tongue","points":["Multiple deep ulcers and superficial erosions of variable size on the dorsal surface of the tongue.","These areas are surrounded by hyperemic zones."],"src":"Section 1, p. 18","imgs":[{"src":"jar-ulcerative-glossitis","w":285,"h":532}]},{"id":"jar-2","sys":"digestive","type":"jar","name":"Cysticercus bovis","organ":"Tongue","points":["Greyish white, multiple, oat-like cysts embedded in the muscular tissue."],"src":"Section 1, p. 19","imgs":[{"src":"jar-cysticercus-tongue","w":303,"h":642}]},{"id":"jar-3","sys":"digestive","type":"jar","name":"Vesicular stomatitis","organ":"Tongue","points":["A clear fluid-filled vesicle on the tip of the tongue. On rupture it leaves an area of erosion."],"src":"Section 1, p. 20","imgs":[{"src":"jar-vesicular-stomatitis","w":274,"h":619}]},{"id":"jar-4","sys":"digestive","type":"jar","name":"Gasterophilus equi larvae","organ":"Stomach","points":["Numerous larvae attached to the gastric mucosa.","Hemorrhage and ulceration of the gastric mucosa are seen."],"src":"Section 2, p. 20","imgs":[{"src":"jar-gasterophilus","w":408,"h":450}]},{"id":"jar-5","sys":"digestive","type":"jar","name":"Ascariasis","organ":"Intestine","points":["Complete intestinal obstruction by a large number of adult Ascaris worms."],"src":"Section 2, p. 21","imgs":[{"src":"jar-ascariasis","w":259,"h":536}]},{"id":"jar-6","sys":"digestive","type":"jar","name":"Ulcerative abomasitis","organ":"Abomasum","points":["Multiple ulcers with a depressed surface and rough elevated borders, scattered throughout the abomasal mucosa.","The ulcers are surrounded by a hyperemic zone."],"src":"Section 2, p. 22","imgs":[{"src":"jar-ulcerative-abomasitis","w":230,"h":500}]},{"id":"jar-7","sys":"digestive","type":"jar","name":"Ruminal foreign bodies","organ":"Rumen","points":["Abnormal contents. Plant fibres form phytobezoars, and hair balls are called trichobezoars.","They are frequently found in the rumen and reticulum."],"src":"Section 2, p. 23","imgs":[{"src":"jar-ruminal-foreign-bodies","w":254,"h":428}]},{"id":"act-1","sys":"digestive","type":"act","name":"Hemorrhagic gastritis","ask":"Define the condition. Describe the gross and histological pictures.","qa":[["Gross","Gastric mucosa shows a wide area of dark red to black discoloration."],["Microscopic","The gastric mucosa exhibits marked inflammatory cell infiltration admixed with numerous RBCs."]],"src":"Section 2, p. 24-25","imgs":[{"src":"act-hemorrhagic-gastritis","w":973,"h":696}]},{"id":"act-2","sys":"digestive","type":"act","name":"Ulcerative stomatitis","ask":"Define the condition. Describe the microscopic picture.","qa":[["Microscopic","Complete sloughing of oral mucosa including the basement membrane, with intense inflammatory cell infiltration in the exposed submucosa."]],"src":"Section 2, p. 26-27","imgs":[{"src":"act-ulcerative-stomatitis","w":998,"h":705}]},{"id":"act-3","sys":"digestive","type":"act","name":"Intestinal intussusception","ask":"Define the condition. Mention the possible cause of death.","qa":[["Cause of death","Toxemia: vascular obstruction, passive hyperemia, edema, hemorrhage, ischemic necrosis and infarction, gangrene, intestinal rupture, toxemia, peritonitis and death."]],"src":"Section 2, p. 28-29","imgs":[{"src":"act-intussusception","w":922,"h":680}]},{"id":"act-4","sys":"digestive","type":"act","name":"Acute (hemorrhagic) enteritis","ask":"Name the condition. Describe both gross and microscopic pictures.","qa":[["Gross","The intestinal wall is severely congested, thickened and covered with abundant blood-stained content."],["Microscopic","Infiltration of intestinal mucosa with inflammatory cells admixed with RBCs."]],"src":"Section 3, p. 16-17","imgs":[{"src":"act-hemorrhagic-enteritis","w":928,"h":569}]},{"id":"act-5","sys":"digestive","type":"act","name":"Ruminal impaction","ask":"Name the condition. Mention the causes and possible cause of death.","qa":[["Cause","Change of diet to easily fermentable food (carbohydrate rich), or change of food quantity with insufficient water intake, vagal indigestion, ruminal atony."],["Cause of death","Dehydration (increased osmotic pressure of ruminal content) and circulatory collapse, and also acidosis and toxemia."]],"src":"Section 3, p. 18-19","imgs":[{"src":"act-ruminal-impaction","w":914,"h":565}]},{"id":"act-6","sys":"digestive","type":"act","name":"Catarrhal enteritis","ask":"Name the condition. Describe both gross and microscopic pictures.","qa":[["Gross","Congested and thickened mucosa covered with abundant mucus exudate."],["Microscopic","Submucosa infiltrated by inflammatory edema and inflammatory cells, with hyperemic blood vessels. Surface epithelium covered with cell debris, bluish mucus exudate and inflammatory cells. Degeneration and desquamation of epithelial cells, and hyperplasia of mucus-secreting cells."]],"src":"Section 3, p. 20-21","imgs":[{"src":"act-catarrhal-enteritis","w":947,"h":569}]},{"id":"act-7","sys":"digestive","type":"act","name":"Biliary cirrhosis","ask":"Which type of hepatic cirrhosis could be seen in this case? Describe the microscopic picture.","qa":[["Microscopic","Fibrous tissue encircles individual hepatic lobules. There are newly formed bile ductules, mononuclear inflammatory cell infiltration and degeneration in hepatocytes."]],"src":"Section 3, p. 22-23","imgs":[{"src":"act-biliary-cirrhosis","w":1000,"h":535}]},{"id":"slide-11","sys":"respiratory","type":"slide","name":"Emphysema and atelectasis","organ":"Lung","stain":"H&E","points":["Some alveoli are compressed into scarcely recognizable slits, with prominent dilated peri-alveolar capillaries.","Other alveoli are greatly distended and enlarged. Some alveolar walls are ruptured, forming giant alveoli.","The alveolar walls in that area are thin due to stretching."],"src":"Section 3, p. 7-8","imgs":[{"src":"emphysema-atelectasis","w":864,"h":593}]},{"id":"slide-12","sys":"respiratory","type":"slide","name":"Fibrinous pneumonia","organ":"Lung","stain":"H&E","points":["Peri-alveolar and peri-bronchial blood vessels and capillaries are greatly dilated and engorged with blood.","Alveoli are filled with inflammatory exudate rich in fibrin, which appears as a dirty pink network of fibrin threads.","Numerous inflammatory cells are seen inside the meshes of the fibrin network."],"src":"Section 3, p. 10-11","imgs":[{"src":"fibrinous-pneumonia","w":874,"h":594}]},{"id":"slide-13","sys":"respiratory","type":"slide","name":"Catarrhal pneumonia","organ":"Lung","stain":"H&E","points":["Peri-alveolar and peri-bronchial blood vessels and capillaries are greatly dilated and engorged with blood.","Hyperplasia of the bronchiolar lining epithelium, with metaplasia of most of it into goblet cells.","The bronchial lumen is filled with mucous exudate (bluish tint), desquamated epithelial cells and mononuclear inflammatory cells.","Alveoli are filled with many mononuclear inflammatory cells and serous exudate."],"src":"Section 3, p. 12-13","imgs":[{"src":"catarrhal-pneumonia","w":878,"h":608}]},{"id":"slide-14","sys":"respiratory","type":"slide","name":"Suppurative (embolic) pneumonia","organ":"Lung","stain":"H&E","points":["A homogeneous structureless area of liquefactive necrosis occupies the affected tissue, surrounded by a zone of hyperemic capillaries and inflammatory cells, mainly living and dead neutrophils.","Surrounding alveoli are filled with living and dead neutrophils, macrophages and lymphocytes, as well as fibrinous and pus exudates."],"src":"Section 3, p. 14-15","imgs":[{"src":"suppurative-pneumonia","w":874,"h":597}]},{"id":"slide-15","sys":"respiratory","type":"slide","name":"Parasitic pneumonia","organ":"Lung","stain":"H&E","points":["Parasitic ova and larvae are seen inside some alveoli as dark spots of different shapes (rounded, oval).","Mature worms or incompletely developed parasites are inside the alveoli, surrounded by macrophages, lymphocytes and numerous eosinophils."],"src":"Section 4, p. 2-3","imgs":[{"src":"parasitic-pneumonia","w":874,"h":605}]},{"id":"slide-16","sys":"respiratory","type":"slide","name":"Chronic parasitic pneumonia","organ":"Lung","stain":"H&E","points":["A well-defined parasitic granuloma: a centrally situated dead parasite in caseated material with bluish deposits of calcification.","Surrounded by inflammatory cells, mainly eosinophils, and a fibrous connective tissue capsule."],"src":"Section 4, p. 4-5","imgs":[{"src":"chronic-parasitic-pneumonia","w":874,"h":626}]},{"id":"slide-17","sys":"respiratory","type":"slide","name":"Mycotic pneumonia","organ":"Lung","stain":"H&E","points":["Granulomatous nodules are scattered all over the lung tissue.","The center holds branched mycelium and spores of the fungus and a zone of necrosis.","Surrounded by lymphocytes, macrophages and plasma cells, all within a fibrous connective tissue capsule."],"src":"Section 4, p. 6-7","imgs":[{"src":"mycotic-pneumonia","w":869,"h":626}]},{"id":"slide-18","sys":"respiratory","type":"slide","name":"Acute pleurisy","organ":"Pleura and lung","stain":"H&E","points":["Pleural blood vessels and capillaries are congested.","The pleura is greatly thickened by edema, fibrin and dilated lymphatics.","Surface mesothelial cells are destroyed and covered with inflammatory cells. Adjacent alveoli are compressed."],"src":"Section 4, p. 8-9","imgs":[{"src":"acute-pleurisy","w":874,"h":618}]},{"id":"slide-19","sys":"respiratory","type":"slide","name":"Organized pleurisy","organ":"Pleura and lung","stain":"H&E","points":["The pleural space is filled with organized tissue formed of fibrous tissue rich in newly formed blood vessels.","The pleura is infiltrated with chronic inflammatory cells, mainly macrophages and lymphocytes."],"src":"Section 4, p. 10-11","imgs":[{"src":"organized-pleurisy","w":874,"h":619}]},{"id":"act-8","sys":"respiratory","type":"act","name":"Epistaxis (bleeding from nostrils)","ask":"Name the condition. Mention the possible causes.","qa":[["Causes","Local trauma (stomach tube), parasites (Oestrus ovis) in sheep, congenital weak blood vessels, erosion of submucosal vessels by inflammation or neoplasms."]],"src":"Section 4, p. 13-14","imgs":[{"src":"act-epistaxis","w":527,"h":558}]},{"id":"act-9","sys":"respiratory","type":"act","name":"Fibrinopurulent tracheitis","ask":"Define the condition. Mention the microscopic picture.","qa":[["Microscopic","Extensive necrosis, fibrin exudation and abundant neutrophils."]],"src":"Section 4, p. 15-16","imgs":[{"src":"act-fibrinopurulent-tracheitis","w":742,"h":274},{"src":"act-fibrinopurulent-tracheitis-b","w":582,"h":270}]},{"id":"act-10","sys":"respiratory","type":"act","name":"Catarrhal tracheitis","ask":"Define the condition. Mention the microscopic picture.","qa":[["Microscopic","Hyperemia, goblet cell hyperplasia and increased mucus exudation."]],"src":"Section 4, p. 17-18","imgs":[{"src":"act-catarrhal-tracheitis","w":998,"h":346},{"src":"act-catarrhal-tracheitis-b","w":557,"h":209}]},{"id":"slide-20","sys":"cardiovascular","type":"slide","name":"Acute pericarditis","organ":"Epicardium","stain":"H&E","points":["Thickening of the epicardial layer, with dispersion of its connective tissue fibers by serous exudate and inflammatory cells (macrophages and lymphocytes).","Normal myocardial muscle can be seen adjacent to the subepicardial tissue."],"src":"Section 5, p. 4-5","imgs":[{"src":"acute-pericarditis","w":1000,"h":635}]},{"id":"slide-21","sys":"cardiovascular","type":"slide","name":"Organized pericarditis","organ":"Epicardium","stain":"H&E","points":["Well-defined granulation tissue separates the apparently normal cardiac muscle from the meshes of the fibrin network.","This tissue is formed from angioblasts and fibroblasts arranged perpendicular to each other."],"src":"Section 5, p. 6-7","imgs":[{"src":"organized-pericarditis","w":1000,"h":662}]},{"id":"slide-22","sys":"cardiovascular","type":"slide","name":"Non-suppurative myocarditis","organ":"Myocardium","stain":"H&E","points":["Hyalinization of affected muscles, which appear homogeneous, structureless and eosinophilic, with muscular fragmentation and pyknotic nuclei (Zenker's necrosis).","Heavy infiltration of mononuclear inflammatory cells, mainly lymphocytes.","Congested blood vessels scattered through the fragmented muscles, with perivascular lymphocytic cuffing."],"src":"Section 5, p. 9-10","imgs":[{"src":"nonsuppurative-myocarditis","w":1000,"h":662}]},{"id":"slide-23","sys":"cardiovascular","type":"slide","name":"Simple valvular endocarditis","organ":"Endocardium","stain":"H&E","points":["Marked inflammatory edema disperses the subendothelial connective tissue, with swelling of the valve tip."],"src":"Section 5, p. 12-13","imgs":[{"src":"simple-endocarditis","w":1000,"h":656}]},{"id":"slide-24","sys":"cardiovascular","type":"slide","name":"Thrombotic valvular endocarditis","organ":"Endocardium","stain":"H&E","points":["A thrombus forms at the site of endothelial injury on the valve.","It consists of fibrin trapping RBCs and WBCs, with basophilic bacterial colonies.","The base of the thrombus is invaded by granulation tissue."],"src":"Section 5, p. 14-15","imgs":[{"src":"thrombotic-endocarditis","w":1000,"h":642}]},{"id":"jar-8","sys":"cardiovascular","type":"jar","name":"Cysticercus bovis","organ":"Heart","points":["Grayish-white, multiple, oat-like cysts embedded in the myocardial muscles."],"src":"Section 5, p. 17","imgs":[{"src":"jar-cysticercus-heart","w":579,"h":1000}]},{"id":"jar-9","sys":"cardiovascular","type":"jar","name":"Aneurysm","organ":"Large blood vessels","points":["Local dilatation of the aorta.","The dilated part takes either a saccular or a fusiform shape."],"src":"Section 5, p. 18","imgs":[{"src":"jar-aneurysm","w":528,"h":1000}]},{"id":"jar-10","sys":"cardiovascular","type":"jar","name":"Subendocardial hemorrhage","organ":"Heart","points":["Areas of ecchymosis under the endocardium.","They appear dark in color and irregular in distribution."],"src":"Section 5, p. 19","imgs":[{"src":"jar-subendocardial-hemorrhage","w":547,"h":1000}]},{"id":"jar-11","sys":"cardiovascular","type":"jar","name":"Traumatic pericarditis","organ":"Heart","points":["A sharp foreign body surrounded by reactive granulation tissue, lodged in the base of the pericardium.","Areas of hemorrhage can be seen in the coronary fat."],"src":"Section 5, p. 20","imgs":[{"src":"jar-traumatic-pericarditis","w":558,"h":1000}]},{"id":"jar-12","sys":"cardiovascular","type":"jar","name":"Shaggy heart (fibrinous pericarditis)","organ":"Heart","points":["Grayish-white fibrin threads hang from the visceral layer of the pericardium toward its parietal layer."],"src":"Section 5, p. 21","imgs":[{"src":"jar-shaggy-heart","w":571,"h":1000}]},{"id":"slide-25","sys":"mammary","type":"slide","name":"Acute mastitis","organ":"Mammary gland","stain":"H&E","points":["Acini show vacuolar degeneration and desquamation in some of the epithelial lining. They are filled with inflammatory cells, especially neutrophils and lymphocytes, plus desquamated cells and fibrin exudate.","Blood vessels are dilated, and interlobular septa are infiltrated with inflammatory cells and inflammatory edema."],"src":"Section 7, p. 5-6","imgs":[{"src":"acute-mastitis","w":898,"h":600}]},{"id":"slide-26","sys":"mammary","type":"slide","name":"Chronic mastitis","organ":"Mammary gland","stain":"H&E","points":["Marked fibrous connective tissue proliferation around the acini and lactiferous ducts and between lobules.","Interlobular and intralobular septa are infiltrated with many lymphocytes, macrophages and plasma cells.","Most acini are atrophied, while the lactiferous duct is cystically dilated."],"src":"Section 7, p. 7-8","imgs":[{"src":"chronic-mastitis","w":920,"h":589}]},{"id":"slide-27","sys":"mammary","type":"slide","name":"Productive mastitis","organ":"Mammary gland","stain":"H&E","points":["Diffuse infiltration of mammary tissue with epithelioid cells, macrophages, lymphocytes and Langhans giant cells, with fibrous connective tissue proliferation. No caseation or calcification.","Acini show variable degrees of degeneration and necrosis of their lining epithelium, with obvious cystic dilatation in most of them."],"flag":"The slide reads \"with nor fibrous connective tissue proliferation\". That wording is unclear, so check it against your notes.","src":"Section 7, p. 9-11","imgs":[{"src":"productive-mastitis","w":936,"h":593},{"src":"productive-mastitis-2","w":912,"h":599}]},{"id":"slide-28","sys":"mammary","type":"slide","name":"Diffuse caseous mastitis","organ":"Mammary gland","stain":"H&E","points":["Diffuse caseated material throughout the mammary tissue. It appears homogeneous and eosinophilic, with no cellular detail or architecture.","Many inflammatory cells, macrophages, lymphocytes and Langhans giant cells are seen.","There is calcification in the caseated area."],"src":"Section 7, p. 12-13","imgs":[{"src":"diffuse-caseous-mastitis","w":926,"h":578}]}]</script>
 <script type="application/json" id="img-data">{"ulcerative-glossitis":"images/ulcerative-glossitis.jpg","ulcerative-rumenitis":"images/ulcerative-rumenitis.jpg","acute-enteritis":"images/acute-enteritis.jpg","necrotic-enteritis":"images/necrotic-enteritis.jpg","granulomatous-enteritis-he":"images/granulomatous-enteritis-he.jpg","granulomatous-enteritis-gms":"images/granulomatous-enteritis-gms.jpg","multilobular-cirrhosis":"images/multilobular-cirrhosis.jpg","biliary-cirrhosis":"images/biliary-cirrhosis.jpg","glissonian-cirrhosis":"images/glissonian-cirrhosis.jpg","hepatic-telangiectasis":"images/hepatic-telangiectasis.jpg","jar-ulcerative-glossitis":"images/jar-ulcerative-glossitis.jpg","jar-cysticercus-tongue":"images/jar-cysticercus-tongue.jpg","jar-vesicular-stomatitis":"images/jar-vesicular-stomatitis.jpg","jar-gasterophilus":"images/jar-gasterophilus.jpg","jar-ascariasis":"images/jar-ascariasis.jpg","jar-ulcerative-abomasitis":"images/jar-ulcerative-abomasitis.jpg","jar-ruminal-foreign-bodies":"images/jar-ruminal-foreign-bodies.jpg","act-hemorrhagic-gastritis":"images/act-hemorrhagic-gastritis.jpg","act-ulcerative-stomatitis":"images/act-ulcerative-stomatitis.jpg","act-intussusception":"images/act-intussusception.jpg","act-hemorrhagic-enteritis":"images/act-hemorrhagic-enteritis.jpg","act-ruminal-impaction":"images/act-ruminal-impaction.jpg","act-catarrhal-enteritis":"images/act-catarrhal-enteritis.jpg","act-biliary-cirrhosis":"images/act-biliary-cirrhosis.jpg","emphysema-atelectasis":"images/emphysema-atelectasis.jpg","fibrinous-pneumonia":"images/fibrinous-pneumonia.jpg","catarrhal-pneumonia":"images/catarrhal-pneumonia.jpg","suppurative-pneumonia":"images/suppurative-pneumonia.jpg","parasitic-pneumonia":"images/parasitic-pneumonia.jpg","chronic-parasitic-pneumonia":"images/chronic-parasitic-pneumonia.jpg","mycotic-pneumonia":"images/mycotic-pneumonia.jpg","acute-pleurisy":"images/acute-pleurisy.jpg","organized-pleurisy":"images/organized-pleurisy.jpg","act-epistaxis":"images/act-epistaxis.jpg","act-fibrinopurulent-tracheitis":"images/act-fibrinopurulent-tracheitis.jpg","act-fibrinopurulent-tracheitis-b":"images/act-fibrinopurulent-tracheitis-b.jpg","act-catarrhal-tracheitis":"images/act-catarrhal-tracheitis.jpg","act-catarrhal-tracheitis-b":"images/act-catarrhal-tracheitis-b.jpg","acute-pericarditis":"images/acute-pericarditis.jpg","organized-pericarditis":"images/organized-pericarditis.jpg","nonsuppurative-myocarditis":"images/nonsuppurative-myocarditis.jpg","simple-endocarditis":"images/simple-endocarditis.jpg","thrombotic-endocarditis":"images/thrombotic-endocarditis.jpg","jar-cysticercus-heart":"images/jar-cysticercus-heart.jpg","jar-aneurysm":"images/jar-aneurysm.jpg","jar-subendocardial-hemorrhage":"images/jar-subendocardial-hemorrhage.jpg","jar-traumatic-pericarditis":"images/jar-traumatic-pericarditis.jpg","jar-shaggy-heart":"images/jar-shaggy-heart.jpg","acute-mastitis":"images/acute-mastitis.jpg","chronic-mastitis":"images/chronic-mastitis.jpg","productive-mastitis":"images/productive-mastitis.jpg","productive-mastitis-2":"images/productive-mastitis-2.jpg","diffuse-caseous-mastitis":"images/diffuse-caseous-mastitis.jpg"}</script>
 <script>
+/* Marks a typed answer against one case. Forgives small spelling slips, but a real word
+   that is simply a different term (fibrous for fibrinous) is never treated as a slip. */
+var VPPGrader = (function () {
+  'use strict';
+  var STOP = ' a an and are as at be been by can each for from has have in into is it its of on or other our some such that the their them there these they this those to under was were which while with within also all any both most many much very seen see shows show showing appears appear appear forms form formed area areas part parts site sites one two due not no between around over through throughout up'.split(' ').reduce(function (o, w) { o[w] = 1; return o; }, {});
+  /* Real terms that exist in pathology but not in these cases, so they stay distinct */
+  var EXTRA = 'hypoplasia hyperplasia hypertrophy atrophy aplasia dysplasia metaplasia neoplasia fibrous fibrosis fibrin fibrinous serous mucous mucoid mucus purulent suppurative catarrhal gastritis enteritis colitis hepatitis nephritis metritis mastitis pneumonia pleurisy pleuritis pericarditis myocarditis endocarditis stomatitis glossitis rumenitis abomasitis tracheitis bronchitis peritonitis acute subacute peracute chronic benign malignant adenoma carcinoma sarcoma papilloma fibroma lipoma necrosis necrotic gangrene gangrenous congestion hemorrhage hemorrhagic edema thrombus thrombosis embolus embolic infarct infarction abscess granuloma granulomatous liver lung heart kidney spleen stomach intestine rumen abomasum tongue udder trachea pleura vegetative lobar lobular interstitial viral mycotic parasitic ulcer ulcerative erosion erosive vesicle vesicular cyst cystic'.split(' ');
+  /* Different words for the same finding */
+  var SAME = [
+    ['congestion', 'congested', 'hyperemia', 'hyperemic', 'engorged', 'engorgement'],
+    ['dilatation', 'dilation', 'dilated', 'dilate', 'dilating', 'distended', 'distension'],
+    ['infiltration', 'infiltrated', 'infiltrate', 'infiltrates', 'infiltrating'],
+    ['degeneration', 'degenerated', 'degenerative'],
+    ['necrosis', 'necrotic'],
+    ['inflammatory', 'inflammation', 'inflamed'],
+    ['thickening', 'thickened', 'thick'],
+    ['proliferation', 'proliferative', 'proliferating'],
+    ['desquamation', 'desquamated', 'sloughing', 'sloughed', 'shedding'],
+    ['hemorrhage', 'hemorrhagic', 'bleeding'],
+    ['ulcer', 'ulcerative', 'ulceration', 'ulcerated'],
+    ['rbc', 'erythrocyte', 'rbcs'],
+    ['wbc', 'leukocyte', 'leucocyte', 'wbcs', 'leukocytic'],
+    ['neutrophil', 'pmn'],
+    ['calcification', 'calcified'],
+    ['caseation', 'caseated', 'caseous'],
+    ['fungus', 'fungal', 'mycotic'],
+    ['atrophy', 'atrophied', 'atrophic'],
+    ['pleurisy', 'pleuritis'],
+    ['ruminal', 'rumen'],
+    ['intestine', 'intestinal', 'bowel', 'gut'],
+    ['gastric', 'stomach']
+  ];
+  var GENERIC = { cell: 1, blood: 1, vessel: 1, tissue: 1, inflammatory: 1, epithelial: 1, lining: 1, surface: 1, wall: 1, layer: 1, mucosa: 1 };
+  var SAME_MAP = {};
+  SAME.forEach(function (g) { g.forEach(function (w) { SAME_MAP[w] = g[0]; }); });
+
+  /* Other accepted names. Words in brackets in a case name are handled here. */
+  var ALIASES = {
+    'Acute (catarrhal) enteritis': ['acute enteritis', 'catarrhal enteritis'],
+    'Acute (hemorrhagic) enteritis': ['acute enteritis', 'hemorrhagic enteritis'],
+    'Suppurative (embolic) pneumonia': ['suppurative pneumonia', 'embolic pneumonia'],
+    'Biliary cirrhosis (fascioliasis)': ['biliary cirrhosis', 'fascioliasis'],
+    'Shaggy heart (fibrinous pericarditis)': ['shaggy heart', 'fibrinous pericarditis'],
+    'Epistaxis (bleeding from nostrils)': ['epistaxis', 'bleeding nostrils', 'nasal bleeding', 'nasal hemorrhage'],
+    'Cysticercus bovis': ['cysticercus bovis', 'cysticercus', 'cysticercosis'],
+    'Gasterophilus equi larvae': ['gasterophilus', 'gasterophilosis'],
+    'Ascariasis': ['ascariasis', 'ascaris'],
+    'Intestinal intussusception': ['intussusception'],
+    'Hepatic telangiectasis': ['telangiectasis'],
+    'Ruminal foreign bodies': ['ruminal foreign body', 'foreign body', 'bezoar', 'phytobezoar', 'trichobezoar'],
+    'Simple valvular endocarditis': ['simple endocarditis'],
+    'Thrombotic valvular endocarditis': ['thrombotic endocarditis'],
+    'Ruminal impaction': ['ruminal impaction', 'impaction']
+  };
+  var ORGANS = {
+    'Tongue': ['tongue', 'lingual'],
+    'Rumen mucosa': ['rumen', 'ruminal'],
+    'Rumen': ['rumen', 'ruminal'],
+    'Intestine': ['intestine', 'jejunum', 'ileum', 'duodenum', 'enteric'],
+    'Small intestine': ['intestine', 'jejunum', 'ileum', 'duodenum', 'enteric'],
+    'Liver': ['liver', 'hepatic'],
+    'Stomach': ['gastric'],
+    'Abomasum': ['abomasum', 'abomasal'],
+    'Lung': ['lung', 'pulmonary'],
+    'Pleura and lung': ['pleura', 'pleural', 'lung', 'pulmonary'],
+    'Epicardium': ['epicardium', 'epicardial', 'pericardium', 'pericardial', 'heart', 'cardiac'],
+    'Myocardium': ['myocardium', 'myocardial', 'heart', 'cardiac'],
+    'Endocardium': ['endocardium', 'endocardial', 'valve', 'valvular', 'heart', 'cardiac'],
+    'Heart': ['heart', 'cardiac', 'myocardium', 'pericardium', 'endocardium', 'epicardium'],
+    'Large blood vessels': ['aorta', 'aortic', 'artery', 'arterial', 'vessel', 'vascular'],
+    'Mammary gland': ['mammary', 'udder', 'breast']
+  };
+
+  /* Spelling that differs by country, and joined prefixes, read the same */
+  function clean(text) {
+    return String(text || '').toLowerCase().replace(/&/g, ' and ')
+      .replace(/haem/g, 'hem').replace(/oedema/g, 'edema').replace(/oesoph/g, 'esoph').replace(/leucocyt/g, 'leukocyt').replace(/grey/g, 'gray').replace(/fibre/g, 'fiber')
+      .replace(/\bnon[\s-]+/g, 'non').replace(/\bsub[\s-]+/g, 'sub').replace(/\bperi[\s-]+/g, 'peri').replace(/\bbroncho[\s-]+/g, 'broncho')
+      .replace(/[^a-z0-9\s]/g, ' ');
+  }
+  function single(w) {
+    if (w.length < 5 || /(ss|us|is|sis)$/.test(w)) return w;
+    if (/ies$/.test(w)) return w.slice(0, -3) + 'y';
+    if (/s$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+  function words(text) { return clean(text).split(/\s+/).filter(Boolean).map(single); }
+  function keep(list) { return list.filter(function (w) { return !STOP[w] && w.length > 1; }); }
+
+  /* Typing distance; swapping two neighbouring letters counts as one slip */
+  function distance(a, b, limit) {
+    if (Math.abs(a.length - b.length) > limit) return limit + 1;
+    var rows = [];
+    for (var i = 0; i <= a.length; i++) { rows[i] = [i]; }
+    for (var j = 0; j <= b.length; j++) { rows[0][j] = j; }
+    for (i = 1; i <= a.length; i++) {
+      for (j = 1; j <= b.length; j++) {
+        var cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        rows[i][j] = Math.min(rows[i - 1][j] + 1, rows[i][j - 1] + 1, rows[i - 1][j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) rows[i][j] = Math.min(rows[i][j], rows[i - 2][j - 2] + 1);
+      }
+    }
+    return rows[a.length][b.length];
+  }
+  function allowed(w) { return w.length <= 3 ? 0 : w.length <= 5 ? 1 : w.length <= 8 ? 2 : 3; }
+
+  function create(cases) {
+    var vocab = {};
+    function add(text) { words(text).forEach(function (w) { vocab[w] = 1; }); }
+    EXTRA.forEach(add);
+    SAME.forEach(function (g) { g.forEach(add); });
+    Object.keys(ALIASES).forEach(function (k) { ALIASES[k].forEach(add); });
+    Object.keys(ORGANS).forEach(function (k) { ORGANS[k].forEach(add); });
+    cases.forEach(function (c) {
+      add(c.name); add(c.organ); add(c.stain);
+      (c.points || []).forEach(add);
+      (c.qa || []).forEach(function (q) { add(q[1]); });
+    });
+    var known = Object.keys(vocab), memo = {};
+
+    /* A known word stays itself. An unknown word becomes the one closest known word, if any. */
+    function fix(w) {
+      if (vocab[w] || STOP[w]) return w;
+      if (memo[w] !== undefined) return memo[w];
+      var limit = allowed(w), best = w, least = limit + 1, tied = false;
+      known.forEach(function (k) {
+        if (k[0] !== w[0] && (w.length < 6 || k.length < 6)) return;
+        var d = distance(w, k, limit);
+        if (k[0] !== w[0] && d > 1) return;
+        if (d < least) { least = d; best = k; tied = false; }
+        else if (d === least && d <= limit && k !== best) tied = true;
+      });
+      return (memo[w] = tied ? w : best);
+    }
+    function read(text) {
+      var slips = [], list = keep(words(text)).map(function (w) {
+        var f = fix(w);
+        if (f !== w) slips.push([w, f]);
+        return f;
+      });
+      return { words: list, slips: slips };
+    }
+    function canon(w) { return SAME_MAP[w] || w; }
+    function setOf(list) { var o = {}; list.forEach(function (w) { o[canon(w)] = 1; }); return o; }
+
+    /* Words any lesion name uses to say which kind it is, so a wrong kind can be told from a missing one */
+    var kinds = {};
+    cases.forEach(function (c) {
+      var list = keep(words(c.name.replace(/[()]/g, ' ')));
+      list.slice(0, -1).forEach(function (w) { kinds[canon(w)] = 1; });
+    });
+    ['acute', 'subacute', 'peracute', 'chronic', 'fibrous', 'serous', 'purulent', 'vegetative', 'lobar', 'lobular', 'interstitial', 'viral', 'gangrenous'].forEach(function (w) { kinds[canon(w)] = 1; });
+
+    function gradeLesion(c, text) {
+      var typed = read(text);
+      if (!typed.words.length) return { level: 0, slips: [], blank: true };
+      var have = setOf(typed.words);
+      var phrases = (ALIASES[c.name] || [c.name.replace(/\([^)]*\)/g, ' ')]).concat(ALIASES[c.name] ? [c.name.replace(/\([^)]*\)/g, ' ')] : []);
+      var wanted = setOf(keep(words(c.name.replace(/[()]/g, ' '))));
+      phrases.forEach(function (p) { keep(words(p)).forEach(function (w) { wanted[canon(w)] = 1; }); });
+      var joined = typed.words.join('');
+      var wrongKind = Object.keys(have).some(function (w) { return kinds[w] && !wanted[w]; });
+      var level = 0;
+      if (/\band\b/i.test(c.name)) {
+        var parts = keep(words(c.name)), got = parts.filter(function (w) { return have[canon(w)]; }).length;
+        level = got === parts.length ? 1 : got ? 0.5 : 0;
+      } else phrases.forEach(function (p) {
+        var need = keep(words(p)).map(canon), head = need[need.length - 1];
+        var got = need.filter(function (w) { return have[w]; }).length;
+        var together = need.join('') === joined;
+        var l = got === need.length || together ? 1 : have[head] && head !== 'heart' ? 0.5 : 0;
+        if (l > level) level = l;
+      });
+      if (wrongKind && level > 0) level = 0;
+      return { level: level, slips: typed.slips, wrongKind: wrongKind };
+    }
+    function gradeOrgan(c, text) {
+      var typed = read(text);
+      if (!typed.words.length) return { level: 0, slips: [], blank: true };
+      var ok = (ORGANS[c.organ] || keep(words(c.organ))).map(canon), have = setOf(typed.words);
+      return { level: ok.some(function (w) { return have[w]; }) ? 1 : 0, slips: typed.slips };
+    }
+    function stainKind(text) {
+      var raw = clean(text).split(/\s+/).filter(Boolean), s = raw.join('');
+      if (/^(he|hande|hestain|handestain)$/.test(s)) return 'he';
+      var list = raw.map(fix);
+      if (list.indexOf('hematoxylin') > -1 || list.indexOf('eosin') > -1 || /hematox|hemotox/.test(s)) return 'he';
+      if (/gms|gomori|methenamine|silver/.test(s)) return 'gms';
+      return s || null;
+    }
+    function gradeStain(c, text) {
+      var mine = stainKind(text);
+      if (!mine) return { level: 0, slips: [], blank: true };
+      return { level: mine === (/^H&E/.test(c.stain) ? 'he' : 'gms') ? 1 : 0, slips: [] };
+    }
+    function pointsOf(c) {
+      if (c.type !== 'act') return c.points.slice();
+      var list = [];
+      c.qa.forEach(function (q) {
+        q[1].split(/\.\s+/).forEach(function (s) { if (s.trim()) list.push(s.replace(/\.$/, '').trim() + '.'); });
+      });
+      return list;
+    }
+    function gradeDesc(c, text) {
+      var typed = read(text), have = setOf(typed.words), pts = pointsOf(c);
+      var result = pts.map(function (p) {
+        var need = Object.keys(setOf(keep(words(p))));
+        /* Words found in almost every answer count half, so they cannot earn a point alone */
+        var score = need.reduce(function (t, w) { return t + (have[w] ? (GENERIC[w] ? 0.5 : 1) : 0); }, 0);
+        return { text: p, hit: score > 0 && score >= Math.min(2, Math.ceil(need.length * 0.4)) };
+      });
+      var hits = result.filter(function (r) { return r.hit; }).length;
+      return { points: result, hits: hits, ratio: pts.length ? hits / pts.length : 0, slips: typed.slips, blank: !typed.words.length };
+    }
+
+    function grade(c, answer) {
+      answer = answer || {};
+      var lesion = gradeLesion(c, answer.lesion);
+      var organ = c.type === 'act' ? null : gradeOrgan(c, answer.organ);
+      var stain = c.type === 'slide' ? gradeStain(c, answer.stain) : null;
+      var desc = gradeDesc(c, answer.desc);
+      var mark;
+      if (lesion.level === 0) mark = 0;
+      else if (lesion.level === 1 && (!organ || organ.level) && (!stain || stain.level) && desc.ratio >= 0.5) mark = 1;
+      else mark = 0.5;
+      /* Only report a slip when the corrected word belongs to this answer */
+      var slips = [], seen = {}, own = setOf(keep(words([c.name.replace(/[()]/g, ' '), c.organ, c.stain || ''].concat(pointsOf(c), ALIASES[c.name] || [], ORGANS[c.organ] || []).join(' '))));
+      [lesion, organ, stain, desc].forEach(function (g) {
+        (g ? g.slips : []).forEach(function (s) { if (!seen[s[0]] && own[canon(s[1])]) { seen[s[0]] = 1; slips.push(s); } });
+      });
+      return { mark: mark, lesion: lesion, organ: organ, stain: stain, desc: desc, slips: slips };
+    }
+    return { grade: grade };
+  }
+  return { create: create };
+})();
 (function () {
   'use strict';
   var CASES = JSON.parse(document.getElementById('case-data').textContent);
@@ -2181,6 +2438,7 @@ body { font-size: 1.125rem; }
   var TYPE = { slide: 'Slide', jar: 'Jar', act: 'Activity' };
   var KEY = 'vpp-progress-v1', SESSION_KEY = 'vpp-session-v1';
   var $ = function (id) { return document.getElementById(id); };
+  var GRADER = VPPGrader.create(CASES);
 
   /* Storage: the signed-in viewer's private document when available, otherwise this browser. */
   function readLocal(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
@@ -2283,13 +2541,13 @@ body { font-size: 1.125rem; }
     state.mocks.slice(-5).reverse().forEach(function (m) {
       hist.appendChild(el('li', {}, [
         el('b', { text: m.pct + '%' }),
-        el('span', { text: m.n + ' questions in ' + clock(m.used) }),
+        el('span', { text: m.n + ' questions' + (m.used != null ? ' in ' + clock(m.used) : '') }),
         el('time', { text: new Date(m.at).toLocaleDateString() })
       ]));
     });
 
     var wl = $('t-weaklist'); wl.textContent = '';
-    if (!weak.length) wl.appendChild(el('li', { 'class': 'empty', text: 'Cases you mark Wrong or Partly will appear here.' }));
+    if (!weak.length) wl.appendChild(el('li', { 'class': 'empty', text: 'Cases marked Wrong or Partly will appear here.' }));
     weak.slice(0, 8).forEach(function (c) { wl.appendChild(el('li', {}, [el('a', { href: '#' + c.id, text: c.name })])); });
     $('t-drillweak').hidden = !weak.length;
 
@@ -2306,12 +2564,14 @@ body { font-size: 1.125rem; }
     var so = $('h-sofar'); so.textContent = '';
     if (seen) { so.appendChild(document.createTextNode('You have practised ')); so.appendChild(el('b', { text: String(seen) })); so.appendChild(document.createTextNode(' of ' + CASES.length + ' cases, and ')); so.appendChild(el('b', { text: String(weak.length) })); so.appendChild(document.createTextNode(weak.length === 1 ? ' needs work.' : ' need work.')); }
     else so.textContent = '28 slides, 12 jars and 10 activities.';
-    if (sess) $('t-resume-text').textContent = 'You have an unfinished paper: question ' + (sess.i + 1) + ' of ' + sess.ids.length + ', with ' + clock(sess.remaining) + ' left.';
+    if (sess) $('t-resume-text').textContent = 'You have an unfinished paper: question ' + (sess.i + 1) + ' of ' + sess.ids.length + (sess.timed === false ? '.' : ', with ' + clock(sess.remaining) + ' left.');
   }
 
   function updateTotal() {
     var pool = poolSize(), n = Math.min(+checked('t-n'), pool);
-    $('t-total').textContent = n ? n + ' questions, ' + minutes(n * +checked('t-min') * 60) : 'Choose at least one system.';
+    var timed = $('t-timed').checked;
+    $('t-time-opt').hidden = !timed;
+    $('t-total').textContent = n ? n + ' questions, ' + (timed ? minutes(n * +checked('t-min') * 60) : 'no timer') : 'Choose at least one system.';
     $('t-start').disabled = !n;
   }
   function selectedSystems() { return Array.prototype.map.call(document.querySelectorAll('input[name="t-sys"]:checked'), function (i) { return i.value; }); }
@@ -2356,27 +2616,64 @@ body { font-size: 1.125rem; }
     kids.push(el('p', { 'class': 'src', text: c.src }));
     return el('div', { 'class': 'model' }, kids);
   }
-  function markButtons(current, onMark) {
-    return el('div', { 'class': 'marks', role: 'group', 'aria-label': 'Mark this answer' }, [[1, 'Correct', 'm-c'], [0.5, 'Partly', 'm-p'], [0, 'Wrong', 'm-w']].map(function (m) {
-      return el('button', { type: 'button', 'class': m[2], 'aria-pressed': String(current === m[0]), text: m[1], on: { click: function (e) { stampThen(e.target, m, onMark); } } });
+  var MARK = { 1: ['Correct', 's-c'], 0.5: ['Partly', 's-p'], 0: ['Wrong', 's-w'] };
+  function answerForm(c, a, prefix, onChange, onSubmit, label) {
+    var inputs = fields(c).map(function (f) {
+      var fid = prefix + '-' + f[0];
+      var handler = { input: function (e) { onChange(f[0], e.target.value); } };
+      return el('div', { 'class': 'field' + (f[2] ? ' wide' : '') }, [
+        el('label', { 'for': fid, text: f[1] }),
+        f[2] ? el('textarea', { id: fid, rows: 3, value: a[f[0]] || '', on: handler }) : el('input', { id: fid, type: 'text', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', value: a[f[0]] || '', on: handler })
+      ]);
+    });
+    return [el('div', { 'class': 'fields' }, inputs), el('div', { 'class': 'row' }, [barBtn(label || 'Submit answer', onSubmit, 'btn-main')])];
+  }
+  function verdictWord(g) { return !g || g.blank ? 'Blank' : g.level === 1 ? 'Right' : g.level === 0.5 ? 'Incomplete' : 'Wrong'; }
+  function verdictClass(g) { return !g || g.blank || g.level === 0 ? 'no' : g.level === 1 ? 'ok' : 'part'; }
+  function yourRow(label, value, g) {
+    var v = (value || '').trim();
+    return el('div', { 'class': 'your' }, [
+      el('dt', {}, [label, g ? el('span', { 'class': 'verdict ' + verdictClass(g), text: verdictWord(g) }) : null]),
+      el('dd', { 'class': v ? '' : 'blank', text: v || 'No answer' })
+    ]);
+  }
+  /* Marked automatically. The buttons are only for the rare answer the marker reads wrongly. */
+  function markedBlock(c, a, mark, onChange) {
+    var g = GRADER.grade(c, a);
+    var rows = fields(c).filter(function (f) { return f[0] !== 'desc'; }).map(function (f) { return yourRow(f[1], a[f[0]], g[f[0]]); });
+    rows.push(yourRow(c.type === 'act' ? 'Rest of your answer' : c.type === 'jar' ? 'Gross description' : 'Microscopic picture', a.desc, null));
+    var head = el('p', { 'class': 'mark-head ' + MARK[mark][1] }, [el('b', { text: MARK[mark][0] }), el('span', { text: mark === g.mark ? ' Marked automatically.' : ' Changed by you.' })]);
+    var picks = el('div', { 'class': 'marks', role: 'group', 'aria-label': 'Change the mark', hidden: 'hidden' }, [[1, 'm-c'], [0.5, 'm-p'], [0, 'm-w']].map(function (m) {
+      return el('button', { type: 'button', 'class': m[1], 'aria-pressed': String(mark === m[0]), text: MARK[m[0]][0], on: { click: function () { onChange(m[0]); } } });
     }));
+    var change = el('button', { type: 'button', 'class': 'link-quiet change-mark', text: 'Think this is marked wrongly? Change it', on: { click: function () { picks.hidden = false; change.hidden = true; } } });
+    return el('div', { 'class': 'marked' }, [
+      head,
+      g.slips.length ? el('p', { 'class': 'slips', text: 'Spelling not counted against you: ' + g.slips.map(function (s) { return s[0] + ' read as ' + s[1]; }).join(', ') + '.' }) : null,
+      el('div', { 'class': 'compare' }, [
+        el('div', {}, [el('p', { 'class': 'q', text: 'Your answer' }), el('dl', {}, rows)]),
+        el('div', {}, [
+          el('p', { 'class': 'q', text: 'Main points: ' + g.desc.hits + ' of ' + g.desc.points.length + ' found' }),
+          el('ul', { 'class': 'pts checked-pts' }, g.desc.points.map(function (p) { return el('li', { 'class': p.hit ? 'hit' : 'miss', text: p.text }); }))
+        ]),
+        el('div', {}, [el('p', { 'class': 'q', text: 'Model answer' }), modelBlock(c)])
+      ]),
+      change, picks
+    ]);
+  }
+  function stamp(card, mark) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var frame = card.querySelector('.q-img');
+    if (frame) frame.appendChild(el('span', { 'class': 'stamp ' + MARK[mark][1], text: MARK[mark][0], 'aria-hidden': 'true' }));
   }
 
-  function stampThen(btn, m, onMark) {
-    var card = btn.closest('.q-card'), still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (card) card.querySelectorAll('.marks button').forEach(function (b) { b.disabled = true; });
-    var frame = card && card.querySelector('.q-img');
-    if (frame && !still) { frame.appendChild(el('span', { 'class': 'stamp ' + (m[0] === 1 ? 's-c' : m[0] === 0.5 ? 's-p' : 's-w'), text: m[1], 'aria-hidden': 'true' })); setTimeout(function () { onMark(m[0]); }, 560); }
-    else onMark(m[0]);
-  }
-
-  /* Mock paper: one question at a time, marked straight after answering. The clock stops while marking. */
+  /* Mock paper: one question at a time, marked as soon as it is submitted. The timer is optional. */
   function startMock() {
     var s = selectedSystems(), pool = CASES.filter(function (c) { return s.indexOf(c.sys) > -1; });
     var list = $('t-weakfirst').checked ? smartOrder(pool) : shuffle(pool);
     var ids = shuffle(list.slice(0, +checked('t-n'))).map(function (c) { return c.id; });
-    var total = Math.round(ids.length * +checked('t-min') * 60);
-    session = { kind: 'mock', stage: 'question', ids: ids, i: 0, answers: {}, marks: {}, total: total, remaining: total };
+    var timed = $('t-timed').checked, total = timed ? Math.round(ids.length * +checked('t-min') * 60) : 0;
+    session = { kind: 'mock', stage: 'question', timed: timed, ids: ids, i: 0, answers: {}, marks: {}, total: total, remaining: total };
     persist(); openRoom(); renderStep();
   }
   function resume() {
@@ -2384,9 +2681,10 @@ body { font-size: 1.125rem; }
     if (!session) return renderBoard();
     openRoom(); renderStep();
   }
+  function isTimed() { return session.timed !== false; }
   function renderStep() { if (session.stage === 'check') renderCheck(); else renderQuestion(); }
   function scoreSoFar() { return session.ids.reduce(function (t, id) { return t + (session.marks[id] || 0); }, 0); }
-  function progressText() { return 'Question ' + (session.i + 1) + ' of ' + session.ids.length + ' · Score ' + scoreSoFar() + ' of ' + session.i; }
+  function progressText() { return 'Question ' + (session.i + 1) + ' of ' + session.ids.length + ' · Score ' + scoreSoFar() + ' of ' + (session.i + (session.stage === 'check' ? 1 : 0)); }
   function renderQuestion() {
     roomBar.textContent = ''; roomBody.textContent = '';
     var id = session.ids[session.i], c = BY_ID[id], a = session.answers[id] || {};
@@ -2395,30 +2693,23 @@ body { font-size: 1.125rem; }
       endBtn.dataset.sure = '1'; endBtn.textContent = 'Tap again to end';
     });
     roomBar.appendChild(el('div', { 'class': 'room-bar-in' }, [
-      el('span', { 'class': 'clock', role: 'timer', id: 'clock', text: clock(session.remaining) }),
+      isTimed() ? el('span', { 'class': 'clock', role: 'timer', id: 'clock', text: clock(session.remaining) }) : null,
       el('span', { 'class': 'count', text: progressText() }),
       el('span', { 'class': 'spacer' }),
       barBtn('Save and leave', function () { persist(); closeRoom(); }), endBtn
     ]));
-    var inputs = fields(c).map(function (f) {
-      var fid = 'q' + session.i + '-' + f[0];
-      var handler = { input: function (e) { (session.answers[id] = session.answers[id] || {})[f[0]] = e.target.value; persist(); } };
-      return el('div', { 'class': 'field' + (f[2] ? ' wide' : '') }, [
-        el('label', { 'for': fid, text: f[1] }),
-        f[2] ? el('textarea', { id: fid, rows: 3, value: a[f[0]] || '', on: handler }) : el('input', { id: fid, type: 'text', autocomplete: 'off', value: a[f[0]] || '', on: handler })
-      ]);
-    });
+    var form = answerForm(c, a, 'q' + session.i, function (k, v) { (session.answers[id] = session.answers[id] || {})[k] = v; persist(); }, goCheck);
     roomBody.appendChild(el('article', { 'class': 'q-card solo' }, [
       images(c),
       el('div', { 'class': 'q-side' }, [
         el('p', { 'class': 'case-no', text: 'Question ' + (session.i + 1) }),
         el('p', { 'class': 'prompt', text: promptFor(c) }),
-        el('div', { 'class': 'fields' }, inputs),
-        el('div', { 'class': 'row' }, [barBtn('Check my answer', goCheck, 'btn-main')])
+        form[0], form[1]
       ])
     ]));
     top();
-    lastTick = Date.now(); stopTimer(); tickId = setInterval(tick, 500);
+    stopTimer();
+    if (isTimed()) { lastTick = Date.now(); tickId = setInterval(tick, 500); }
   }
   function tick() {
     var now = Date.now(); session.remaining -= (now - lastTick) / 1000; lastTick = now;
@@ -2428,39 +2719,42 @@ body { font-size: 1.125rem; }
     if (session.remaining <= 0) { session.remaining = 0; session.timeUp = true; goCheck(); return; }
     if (Math.floor(now / 5000) !== Math.floor((now - 500) / 5000)) persist();
   }
-  function goCheck() { stopTimer(); session.stage = 'check'; persist(); renderCheck(); }
+  function goCheck() {
+    stopTimer(); session.stage = 'check';
+    var id = session.ids[session.i];
+    session.marks[id] = GRADER.grade(BY_ID[id], session.answers[id]).mark;
+    persist(); renderCheck(true);
+  }
   function endEarly() {
     stopTimer();
     if (!Object.keys(session.marks).length) { writeLocal(SESSION_KEY, null); return closeRoom(); }
     finishMock();
   }
-  function renderCheck() {
+  function renderCheck(fresh) {
     roomBar.textContent = ''; roomBody.textContent = '';
     var id = session.ids[session.i], c = BY_ID[id], a = session.answers[id] || {};
+    if (session.marks[id] == null) session.marks[id] = GRADER.grade(c, a).mark;
+    var last = session.timeUp || session.i + 1 >= session.ids.length;
     roomBar.appendChild(el('div', { 'class': 'room-bar-in' }, [
-      el('span', { 'class': 'clock paused', text: clock(session.remaining) }),
-      el('span', { 'class': 'count', text: progressText() + ' · Clock paused' }),
+      isTimed() ? el('span', { 'class': 'clock paused', text: clock(session.remaining) }) : null,
+      el('span', { 'class': 'count', text: progressText() + (isTimed() ? ' · Clock paused' : '') }),
       el('span', { 'class': 'spacer' }),
       barBtn('Save and leave', function () { persist(); closeRoom(); })
     ]));
-    var yours = fields(c).map(function (f) { var v = (a[f[0]] || '').trim(); return el('div', { 'class': 'your' }, [el('dt', { text: f[1] }), el('dd', { 'class': v ? '' : 'blank', text: v || 'No answer' })]); });
-    roomBody.appendChild(el('article', { 'class': 'q-card solo' }, [
+    var card = el('article', { 'class': 'q-card solo' }, [
       images(c),
       el('div', { 'class': 'q-side' }, [
-        session.timeUp ? el('p', { 'class': 'flag', text: 'Time is up. Mark this answer to see your result.' }) : null,
-        el('div', { 'class': 'compare' }, [
-          el('div', {}, [el('p', { 'class': 'q', text: 'Your answer' }), el('dl', {}, yours)]),
-          el('div', {}, [el('p', { 'class': 'q', text: 'Model answer' }), modelBlock(c)])
-        ]),
-        el('p', { 'class': 'q', text: 'How did you do?' }),
-        markButtons(null, function (m) {
-          session.marks[id] = m; session.i++;
-          if (session.timeUp || session.i >= session.ids.length) return finishMock();
+        session.timeUp ? el('p', { 'class': 'flag', text: 'Time is up. This is your last marked answer.' }) : null,
+        markedBlock(c, a, session.marks[id], function (m) { session.marks[id] = m; persist(); renderCheck(); }),
+        el('div', { 'class': 'row' }, [barBtn(last ? 'See my result' : 'Next question', function () {
+          session.i++;
+          if (last) return finishMock();
           session.stage = 'question'; persist(); renderQuestion();
-        }),
-        el('p', { 'class': 'src', text: 'Suggested standard. Correct: the lesion, organ, stain and main points are right. Partly: the lesion is right but details are missing, or only some is right. Wrong: the lesion is wrong or blank.' })
+        }, 'btn-main')])
       ])
-    ]));
+    ]);
+    roomBody.appendChild(card);
+    if (fresh) stamp(card, session.marks[id]);
     top();
   }
 function finishMock() {
@@ -2470,7 +2764,7 @@ function finishMock() {
       sum += m; if (s.marks[id] != null) record(id, m);
       bySys[c.sys] = bySys[c.sys] || { got: 0, n: 0 }; bySys[c.sys].got += m; bySys[c.sys].n++;
     });
-    var pct = Math.round(sum / s.ids.length * 100), used = Math.round(s.total - s.remaining);
+    var pct = Math.round(sum / s.ids.length * 100), used = s.timed === false ? null : Math.round(s.total - s.remaining);
     state.mocks.push({ at: Date.now(), n: s.ids.length, score: sum, pct: pct, used: used });
     state.mocks = state.mocks.slice(-30);
     save(); writeLocal(SESSION_KEY, null);
@@ -2483,12 +2777,12 @@ function finishMock() {
     var keys = Object.keys(bySys).sort(function (a, b) { return bySys[a].got / bySys[a].n - bySys[b].got / bySys[b].n; });
     roomBody.appendChild(el('section', { 'class': 'result' }, [
       el('p', { 'class': 'big', text: pct + '%' }),
-      el('p', { 'class': 'lede', text: sum + ' of ' + s.ids.length + ' marks in ' + clock(used) + ', out of ' + clock(s.total) + ' allowed.' + (keys.length > 1 && bySys[keys[0]].got < bySys[keys[0]].n ? ' Your weakest area was ' + SYS[keys[0]] + '.' : '') }),
+      el('p', { 'class': 'lede', text: sum + ' of ' + s.ids.length + ' marks' + (used != null ? ' in ' + clock(used) + ', out of ' + clock(s.total) + ' allowed.' : '.') + (keys.length > 1 && bySys[keys[0]].got < bySys[keys[0]].n ? ' Your weakest area was ' + SYS[keys[0]] + '.' : '') }),
       el('div', { 'class': 'bars' }, keys.map(function (k) {
         var p = Math.round(bySys[k].got / bySys[k].n * 100);
         return el('div', { 'class': 'bar-row' }, [el('span', { text: SYS[k] }), el('span', { 'class': 'bar-track' }, [el('i', { style: 'width:' + p + '%' })]), el('b', { text: p + '%' })]);
       })),
-      missed.length ? el('div', { 'class': 'row' }, [barBtn('Drill my ' + missed.length + ' missed ' + (missed.length === 1 ? 'case' : 'cases'), function () { startDrill(missed); }, 'btn-main')]) : el('p', { text: 'You marked every answer as correct.' }),
+      missed.length ? el('div', { 'class': 'row' }, [barBtn('Drill my ' + missed.length + ' missed ' + (missed.length === 1 ? 'case' : 'cases'), function () { startDrill(missed); }, 'btn-main')]) : el('p', { text: 'Every answer was correct.' }),
       missed.length ? el('ul', { 'class': 'missed' }, missed.map(function (id) { return el('li', { text: BY_ID[id].name + (s.marks[id] == null ? ' (not reached)' : s.marks[id] === 0.5 ? ' (partly)' : '') }); })) : null
     ]));
     top();
@@ -2509,7 +2803,7 @@ function finishMock() {
   var drill = null;
   function startDrill(ids) {
     stopTimer(); session = null;
-    drill = { queue: ids.slice(), i: 0, open: false, again: {}, tally: { c: 0, p: 0, w: 0 } };
+    drill = { queue: ids.slice(), i: 0, answer: {}, mark: null, again: {}, tally: { c: 0, p: 0, w: 0 } };
     openRoom(); renderDrill();
   }
   function startDrillFromForm() {
@@ -2527,18 +2821,24 @@ function finishMock() {
     if (drill.i >= drill.queue.length) return drillSummary();
     var c = BY_ID[drill.queue[drill.i]];
     var side = [el('p', { 'class': 'case-no', text: TYPE[c.type] }), el('p', { 'class': 'prompt', text: promptFor(c) })];
-    if (!drill.open) {
-      side.push(el('div', { 'class': 'row' }, [barBtn('Show the answer', function () { drill.open = true; renderDrill(); }, 'btn-main')]));
+    var fresh = drill.fresh; drill.fresh = false;
+    if (drill.mark == null) {
+      answerForm(c, drill.answer, 'd' + drill.i, function (k, v) { drill.answer[k] = v; }, function () {
+        drill.mark = GRADER.grade(c, drill.answer).mark; drill.fresh = true; renderDrill();
+      }).forEach(function (n) { side.push(n); });
     } else {
-      side.push(modelBlock(c));
-      side.push(markButtons(null, function (m) {
+      side.push(markedBlock(c, drill.answer, drill.mark, function (m) { drill.mark = m; renderDrill(); }));
+      side.push(el('div', { 'class': 'row' }, [barBtn('Next', function () {
+        var m = drill.mark;
         record(c.id, m); save();
         drill.tally[m === 1 ? 'c' : m === 0.5 ? 'p' : 'w']++;
         if (m === 0 && !drill.again[c.id]) { drill.again[c.id] = 1; drill.queue.push(c.id); }
-        drill.i++; drill.open = false; renderDrill();
-      }));
+        drill.i++; drill.mark = null; drill.answer = {}; renderDrill();
+      }, 'btn-main')]));
     }
-    roomBody.appendChild(el('article', { 'class': 'q-card solo' }, [images(c), el('div', { 'class': 'q-side' }, side)]));
+    var card = el('article', { 'class': 'q-card solo' }, [images(c), el('div', { 'class': 'q-side' }, side)]);
+    roomBody.appendChild(card);
+    if (fresh) stamp(card, drill.mark);
     top();
   }
   function drillSummary() {
@@ -2547,7 +2847,7 @@ function finishMock() {
     roomBar.appendChild(el('div', { 'class': 'room-bar-in' }, [el('span', { 'class': 'spacer' }), barBtn('Back', closeRoom, 'btn-main')]));
     roomBody.appendChild(el('section', { 'class': 'result' }, [
       el('p', { 'class': 'big', text: String(t.c + t.p + t.w) }),
-      el('p', { 'class': 'lede', text: 'answers marked: ' + t.c + ' correct, ' + t.p + ' partly, ' + t.w + ' wrong. Cases you marked Wrong came back once during the drill.' })
+      el('p', { 'class': 'lede', text: 'answers marked: ' + t.c + ' correct, ' + t.p + ' partly, ' + t.w + ' wrong. Wrong cases came back once during the drill.' })
     ]));
     top();
   }

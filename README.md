@@ -1,6 +1,6 @@
 # Vet Path Practical
 
-Revision notes and timed practice for the PAT-313 practical special pathology exam.
+Revision notes and automatically marked practice for the PAT-313 practical special pathology exam.
 
 Open the site: https://aabdelraouf2411-sys.github.io/vet-path-practical/
 
