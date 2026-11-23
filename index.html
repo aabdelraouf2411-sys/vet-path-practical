@@ -2361,7 +2361,7 @@ body { font-size: 1.125rem; }
     <div class="wrap">
       <div class="head">
         <h2>Stains</h2>
-        <p class="lede">27 of the 28 slides are H&amp;E. The one exception is GMS, used on granulomatous enteritis. The table lists colour clues from the slide descriptions. The small squares are only a rough guide to the colour.</p>
+        <p class="lede">38 of the 40 slides are H&amp;E. The two exceptions are GMS on granulomatous enteritis and Von Kossa on nephrocalcinosis. The table lists colour clues from the slide descriptions. The small squares are only a rough guide to the colour.</p>
       </div>
       <table class="stain-table">
         <thead><tr><th>Finding</th><th>How your slides describe it</th><th>Where you see it</th></tr></thead>
@@ -2373,6 +2373,8 @@ body { font-size: 1.125rem; }
           <tr><td>Zenker's necrosis</td><td data-h="Looks like"><div class="drops"><i style="background:#EC7FA4"></i></div>Homogeneous, structureless and eosinophilic</td><td data-h="Where you see it">Non-suppurative myocarditis</td></tr>
           <tr><td>Bacterial colonies</td><td data-h="Looks like"><div class="drops"><i style="background:#3E2C96"></i></div>Basophilic</td><td data-h="Where you see it">Thrombotic valvular endocarditis</td></tr>
           <tr><td>Fungal hyphae on GMS</td><td data-h="Looks like"><div class="drops"><i style="background:#0A0A0A"></i><i style="background:#9FD3BD"></i></div>Black on a green background</td><td data-h="Where you see it">Granulomatous enteritis</td></tr>
+          <tr><td>Calcium salts on H&amp;E</td><td data-h="Looks like"><div class="drops"><i style="background:#5267C9"></i></div>Bluish, on the basement membrane of renal tubules</td><td data-h="Where you see it">Nephrocalcinosis</td></tr>
+          <tr><td>Calcium salts on Von Kossa</td><td data-h="Looks like"><div class="drops"><i style="background:#0A0A0A"></i></div>Black</td><td data-h="Where you see it">Nephrocalcinosis</td></tr>
         </tbody>
       </table>
     </div>
@@ -2473,6 +2475,9 @@ body { font-size: 1.125rem; }
 </style>
 <style>
 /* Study mode */
+.study .st-extra { margin-inline: calc(-1 * max(20px, env(safe-area-inset-left, 0px))); }
+.study .st-extra .wrap { padding-inline: max(20px, env(safe-area-inset-left, 0px)); }
+.study .st-list > .facts { margin: 0; }
 .study .st-title { font: 400 1.375rem/1 var(--display); }
 .st-body { gap: 28px; }
 .st-head { display: grid; gap: 14px; }
@@ -3463,7 +3468,7 @@ function finishMock() {
   var TYPE = { slide: 'Slide', jar: 'Jar', act: 'Activity' };
   var box = document.getElementById('study'), list = document.getElementById('st-list');
   var pick = { sys: 'all', type: 'all' }, openedHere = false, near = null;
-  try { var saved = JSON.parse(localStorage.getItem('vpp-study')); if (saved) pick = saved; } catch (e) {}
+  
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function tabs(holder, items, key) {
     holder.textContent = '';
@@ -3471,7 +3476,7 @@ function finishMock() {
       var b = el('button', null, it[1]);
       b.type = 'button';
       b.setAttribute('aria-pressed', String(pick[key] === it[0]));
-      b.addEventListener('click', function () { pick[key] = it[0]; try { localStorage.setItem('vpp-study', JSON.stringify(pick)); } catch (e) {} draw(); box.scrollTop = 0; });
+      b.addEventListener('click', function () { pick[key] = it[0]; draw(); box.scrollTop = 0; });
       holder.appendChild(b);
     });
   }
@@ -3509,6 +3514,20 @@ function finishMock() {
     t.appendChild(el('p', 'src', c.src));
     return t;
   }
+  function copyOf(node) {
+    var c = node.cloneNode(true);
+    c.removeAttribute('id');
+    [c].concat(Array.prototype.slice.call(c.querySelectorAll('*'))).forEach(function (n) {
+      n.removeAttribute && n.removeAttribute('id');
+      if (n.classList) ['rv', 'rv-wipe', 'from-left', 'from-right', 'rv-bars'].forEach(function (k) { n.classList.remove(k); });
+      if (n.style) n.style.removeProperty('--d');
+    });
+    return c;
+  }
+  function summary(sys) {
+    var facts = document.querySelector('#' + sys + ' .facts');
+    if (facts) list.appendChild(copyOf(facts));
+  }
   function draw() {
     tabs(document.getElementById('st-sys'), [['all', 'All systems']].concat(Object.keys(NAMES).map(function (k) { return [k, NAMES[k]]; })), 'sys');
     tabs(document.getElementById('st-type'), TYPES, 'type');
@@ -3521,10 +3540,15 @@ function finishMock() {
       .map(function (c, i) { return [c, i]; }).sort(function (a, b) { return order.indexOf(a[0].sys) - order.indexOf(b[0].sys) || a[1] - b[1]; }).map(function (x) { return x[0]; });
     var last = null;
     shown.forEach(function (c) {
-      if (pick.sys === 'all' && c.sys !== last) { last = c.sys; list.appendChild(el('h2', 'st-group', NAMES[c.sys] + (c.sys === 'mammary' ? ' gland' : ' system'))); }
+      if (pick.sys === 'all' && c.sys !== last) { last = c.sys; list.appendChild(el('h2', 'st-group', NAMES[c.sys] + (c.sys === 'mammary' ? ' gland' : ' system'))); summary(c.sys); }
       var a = el('article', 'st-case'); a.appendChild(picture(c)); a.appendChild(answer(c)); list.appendChild(a);
     });
+    if (pick.sys !== 'all' && shown.length) list.insertBefore(copyOf(document.querySelector('#' + pick.sys + ' .facts') || el('div')), list.firstChild);
     if (!shown.length) list.appendChild(el('p', 'lede', 'No cases of this type in this system.'));
+    if (pick.sys === 'all' && pick.type === 'all') ['stains', 'traps', 'format'].forEach(function (id) {
+      var sec = document.getElementById(id);
+      if (sec) { var c = copyOf(sec); c.classList.add('st-extra'); list.appendChild(c); }
+    });
     document.getElementById('st-count').textContent = shown.length + (shown.length === 1 ? ' case' : ' cases');
   }
   function show() {
